@@ -22,6 +22,7 @@
   "dependencies": {
     "@nestjs/bullmq": "catalog:",
     "@nestjs/common": "catalog:",
+    "@nestjs/config": "catalog:",
     "@nestjs/core": "catalog:",
     "@nexora/contracts": "workspace:*",
     "@prisma/adapter-pg": "catalog:",

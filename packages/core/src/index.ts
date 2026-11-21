@@ -1,4 +1,5 @@
 export * from './platform/config/config.module.ts';
+export * from './platform/config/config.service.ts';
 export * from './platform/config/env.ts';
 export * from './platform/health/health.module.ts';
 export * from './platform/logging/logging.module.ts';

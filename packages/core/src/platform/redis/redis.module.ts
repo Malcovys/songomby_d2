@@ -1,8 +1,7 @@
 import { Global, Inject, Module } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { ENV } from '../config/env.ts';
-import type { Env } from '../config/env.ts';
+import { ConfigService } from '../config/config.service.ts';
 
 export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
 
@@ -11,8 +10,9 @@ export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
   providers: [
     {
       provide: REDIS_CLIENT,
-      inject: [ENV],
-      useFactory: (env: Env) => new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) =>
+        new Redis(config.db.redisUrl, { maxRetriesPerRequest: null }),
     },
   ],
   exports: [REDIS_CLIENT],
