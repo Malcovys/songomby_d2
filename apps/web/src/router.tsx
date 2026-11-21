@@ -1,5 +1,6 @@
 import { Outlet, createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
 import { HealthBadge } from '@/features/health/health-badge';
+import { UiShowcasePage } from '@/features/ui-showcase/ui-showcase-page';
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -20,7 +21,13 @@ const indexRoute = createRoute({
   ),
 });
 
-const routeTree = rootRoute.addChildren([indexRoute]);
+const uiShowcaseRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ui',
+  component: UiShowcasePage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, uiShowcaseRoute]);
 
 export const router = createRouter({ routeTree });
 
