@@ -1,0 +1,20 @@
+FROM node:26-alpine AS base
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN npm install --global pnpm@12.21.0
+WORKDIR /repo
+
+FROM base AS build
+ARG APP
+COPY . .
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm turbo run build --filter=@nexora/${APP}...
+RUN pnpm --filter=@nexora/${APP} --prod deploy --legacy /out
+
+FROM node:26-alpine AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build --chown=node:node /out ./
+USER node
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
