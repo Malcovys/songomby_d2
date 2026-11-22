@@ -1,8 +1,6 @@
-import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import type { Liveness, Readiness } from '@nexora/contracts';
-import { Redis } from 'ioredis';
 import { PrismaService } from '../prisma/prisma.service.ts';
-import { REDIS_CLIENT } from '../redis/redis.module.ts';
 
 const PROBE_TIMEOUT_MS = 2000;
 
@@ -10,10 +8,7 @@ type CheckResult = Readiness['checks'][string];
 
 @Controller('health')
 export class HealthController {
-  constructor(
-    private readonly prisma: PrismaService,
-    @Inject(REDIS_CLIENT) private readonly redis: Redis,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   @Get('live')
   live(): Liveness {
@@ -22,11 +17,8 @@ export class HealthController {
 
   @Get('ready')
   async ready(): Promise<Readiness> {
-    const [database, redis] = await Promise.all([
-      this.probe(() => this.prisma.$queryRaw`SELECT 1`),
-      this.probe(() => this.redis.ping()),
-    ]);
-    const checks = { database, redis };
+    const database = await this.probe(() => this.prisma.$queryRaw`SELECT 1`);
+    const checks = { database };
     const degraded = Object.values(checks).includes('degraded');
     const readiness: Readiness = { status: degraded ? 'degraded' : 'ok', checks };
     if (degraded) {

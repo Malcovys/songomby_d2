@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService as NestConfigService } from '@nestjs/config';
 import type { AppConfig } from './app.config.ts';
 import type { DbConfig } from './db.config.ts';
-import type { StorageConfig } from './storage.config.ts';
 
-interface IConfigs extends AppConfig, DbConfig, StorageConfig {}
+interface IConfigs extends AppConfig, DbConfig {}
 
 @Injectable()
 export class ConfigService {
@@ -18,7 +17,4 @@ export class ConfigService {
     return this.nestConfigService.get('db', { infer: true });
   }
 
-  get storage() {
-    return this.nestConfigService.get('storage', { infer: true });
-  }
 }

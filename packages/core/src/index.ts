@@ -5,8 +5,6 @@ export * from './platform/health/health.module.ts';
 export * from './platform/logging/logging.module.ts';
 export * from './platform/prisma/prisma.module.ts';
 export * from './platform/prisma/prisma.service.ts';
-export * from './platform/queues/queues.module.ts';
-export * from './platform/redis/redis.module.ts';
 export * from './platform/validation/zod-validation.pipe.ts';
 export * from './modules/employees/employees.module.ts';
 export * from './modules/employees/employees.service.ts';

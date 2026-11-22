@@ -23,9 +23,6 @@ jobs:
           - image: api
             dockerfile: docker/Dockerfile.node
             app: api
-          - image: worker
-            dockerfile: docker/Dockerfile.node
-            app: worker
           - image: web
             dockerfile: docker/Dockerfile.web
             app: web

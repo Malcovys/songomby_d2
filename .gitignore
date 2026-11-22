@@ -42,8 +42,6 @@ yarn-error.log*
 # Docker : volumes ou données locales
 postgres-data/
 pgadmin-data/
-redis-data/
-seaweedfs-data/
 
 # Éditeurs
 .vscode/*

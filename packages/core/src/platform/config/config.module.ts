@@ -4,7 +4,6 @@ import appConfig from './app.config.ts';
 import { ConfigService } from './config.service.ts';
 import { validate } from './config.validator.ts';
 import dbConfig from './db.config.ts';
-import storageConfig from './storage.config.ts';
 
 @Global()
 @Module({
@@ -13,7 +12,7 @@ import storageConfig from './storage.config.ts';
       isGlobal: true,
       expandVariables: true,
       envFilePath: ['.env', '../../.env'],
-      load: [appConfig, dbConfig, storageConfig],
+      load: [appConfig, dbConfig],
       validate,
     }),
   ],
