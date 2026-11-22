@@ -36,3 +36,12 @@ export const proposalActionSchema = z.object({
 });
 
 export type ProposalAction = z.infer<typeof proposalActionSchema>;
+
+export const chatStreamEventSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('status'), text: z.string() }),
+  z.object({ type: z.literal('delta'), text: z.string() }),
+  z.object({ type: z.literal('done'), reply: z.string(), proposals: z.array(proposalSchema) }),
+  z.object({ type: z.literal('error'), message: z.string() }),
+]);
+
+export type ChatStreamEvent = z.infer<typeof chatStreamEventSchema>;

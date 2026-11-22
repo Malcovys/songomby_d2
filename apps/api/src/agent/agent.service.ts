@@ -1,11 +1,29 @@
 import { ConflictException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
-import type { ChatRequest, ChatResponse, Proposal, ProposalAction } from '@nexora/contracts';
+import type { ChatRequest, ChatResponse, Proposal, ProposalAction, ChatStreamEvent } from '@nexora/contracts';
 import { PrismaService } from '@nexora/core';
 import { AgentTools } from './agent.tools.ts';
 import { LlmClient } from './llm.client.ts';
 import type { LlmMessage, ToolCall } from './llm.client.ts';
 
+
 const MAX_STEPS = 6;
+
+export interface ChatHooks {
+  onDelta?: (text: string) => void;
+  onTool?: (name: string) => void;
+  signal?: AbortSignal;
+}
+
+const TOOL_STATUS: Record<string, string> = {
+  find_employees: 'Recherche des employés…',
+  list_leaves: 'Consultation des congés…',
+  list_holidays: 'Consultation des jours fériés…',
+  preview_payslip: 'Calcul de la fiche de paie…',
+  add_holidays: 'Préparation des jours fériés…',
+  create_leave: 'Préparation du congé…',
+  create_ticket: 'Préparation du ticket…',
+  generate_payslip: 'Préparation de la fiche de paie…',
+};
 
 const systemPrompt = (): string => `Tu es l'assistant de NEXORA, un ERP de gestion RH pour une seule entreprise.
 Tu réponds en français, de façon brève.
@@ -56,7 +74,7 @@ export class AgentService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async chat(request: ChatRequest): Promise<ChatResponse> {
+  async chat(request: ChatRequest, hooks: ChatHooks = {}): Promise<ChatResponse> {
     const messages: LlmMessage[] = [
       { role: 'system', content: systemPrompt() },
       ...request.messages.map((m) => ({ role: m.role, content: m.content })),
@@ -67,9 +85,12 @@ export class AgentService {
       parameters,
     }));
     const proposals: Proposal[] = [];
+    const { onDelta, onTool, signal } = hooks;
 
     for (let step = 0; step < MAX_STEPS; step++) {
-      const message = await this.llm.chat(messages, definitions);
+      const message = onDelta
+        ? await this.llm.stream(messages, definitions, { onDelta, signal })
+        : await this.llm.chat(messages, definitions, signal);
       messages.push(message);
 
       const calls = (message['tool_calls'] as ToolCall[] | undefined) ?? [];
@@ -82,6 +103,7 @@ export class AgentService {
       }
 
       for (const call of calls) {
+        onTool?.(call.function.name);
         const output = await this.runCall(call, proposals);
         messages.push({
           role: 'tool',
@@ -96,6 +118,23 @@ export class AgentService {
       reply: 'Je n’arrive pas à terminer cette demande. Essayez de la reformuler plus simplement.',
       proposals,
     };
+  }
+
+  async chatStream(
+    request: ChatRequest,
+    send: (event: ChatStreamEvent) => void,
+    signal: AbortSignal,
+  ): Promise<void> {
+    try {
+      const result = await this.chat(request, {
+        signal,
+        onDelta: (text) => send({ type: 'delta', text }),
+        onTool: (name) => send({ type: 'status', text: TOOL_STATUS[name] ?? 'Traitement…' }),
+      });
+      send({ type: 'done', ...result });
+    } catch (error) {
+      if (!signal.aborted) send({ type: 'error', message: errorMessage(error) });
+    }
   }
 
   private async runCall(call: ToolCall, proposals: Proposal[]): Promise<unknown> {

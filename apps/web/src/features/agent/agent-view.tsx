@@ -4,7 +4,8 @@ import type { KeyboardEvent } from 'react';
 import type { Proposal } from '@nexora/contracts';
 import { ApiRequestError } from '@/lib/api';
 import { ProposalCard } from './proposal-card';
-import { useChat, useProposalAction } from './use-agent';
+import { useProposalAction } from './use-agent';
+import { streamChat } from './stream-chat';
 import { Markdown } from './markdown';
 
 interface Message {
@@ -16,6 +17,11 @@ interface Message {
   error?: boolean;
 }
 
+interface Streaming {
+  text: string;
+  status: string;
+}
+
 const SUGGESTIONS = [
   'Ajouter les jours fériés de décembre',
   'Donner les fiches de paie du mois',
@@ -24,6 +30,9 @@ const SUGGESTIONS = [
 ];
 
 const UNREACHABLE = 'Impossible de joindre le serveur. Vérifiez que l’API est lancée.';
+
+const errorText = (error: unknown): string =>
+  error instanceof ApiRequestError ? error.message : UNREACHABLE;
 
 const assistantMessage = (text: string, extra: Partial<Message> = {}): Message => ({
   id: crypto.randomUUID(),
@@ -38,21 +47,71 @@ export function AgentView() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [files, setFiles] = useState<File[]>([]);
+  const [streaming, setStreaming] = useState<Streaming | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
-  const chat = useChat();
+  const abort = useRef<AbortController | null>(null);
   const proposalAction = useProposalAction();
+  const busy = streaming !== null;
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: 'end' });
-  }, [messages, chat.isPending]);
+  }, [messages, streaming]);
+
+  // On quitte la vue : on arrête la requête en cours
+  useEffect(() => () => abort.current?.abort(), []);
 
   const canSend = draft.trim().length > 0 || files.length > 0;
   const empty = messages.length === 0;
 
+  function append(message: Message): void {
+    setMessages((previous) => [...previous, message]);
+  }
+
+  async function askAgent(history: Message[]): Promise<void> {
+    const controller = new AbortController();
+    abort.current = controller;
+    setStreaming({ text: '', status: 'Réflexion…' });
+    let finished = false;
+
+    try {
+      await streamChat(
+        {
+          messages: history
+            .filter((message) => !message.error && message.text !== '')
+            .map((message) => ({ role: message.role, content: message.text })),
+        },
+        (event) => {
+          if (event.type === 'status') {
+            setStreaming({ text: '', status: event.text });
+          } else if (event.type === 'delta') {
+            setStreaming((current) => ({ text: (current?.text ?? '') + event.text, status: '' }));
+          } else if (event.type === 'done') {
+            finished = true;
+            append(assistantMessage(event.reply, { proposals: event.proposals }));
+            setStreaming(null);
+          } else {
+            finished = true;
+            append(assistantMessage(event.message, { error: true }));
+            setStreaming(null);
+          }
+        },
+        controller.signal,
+      );
+      if (!finished) {
+        append(assistantMessage('La réponse a été interrompue. Réessayez.', { error: true }));
+      }
+    } catch (error) {
+      if (!controller.signal.aborted) append(assistantMessage(errorText(error), { error: true }));
+    } finally {
+      setStreaming(null);
+      abort.current = null;
+    }
+  }
+
   function send(): void {
-    if (!canSend || chat.isPending) return;
+    if (!canSend || busy) return;
 
     const text = draft.trim();
     const userMessage: Message = {
@@ -81,28 +140,7 @@ export function AgentView() {
 
     const history = [...messages, userMessage];
     setMessages(history);
-
-    chat.mutate(
-      {
-        messages: history
-          .filter((message) => !message.error && message.text !== '')
-          .map((message) => ({ role: message.role, content: message.text })),
-      },
-      {
-        onSuccess: (data) =>
-          setMessages((previous) => [
-            ...previous,
-            assistantMessage(data.reply, { proposals: data.proposals }),
-          ]),
-        onError: (error) =>
-          setMessages((previous) => [
-            ...previous,
-            assistantMessage(error instanceof ApiRequestError ? error.message : UNREACHABLE, {
-              error: true,
-            }),
-          ]),
-      },
-    );
+    void askAgent(history);
   }
 
   function decide(id: string, action: 'apply' | 'cancel'): void {
@@ -119,8 +157,7 @@ export function AgentView() {
               ),
             })),
           ),
-        onError: (error) =>
-          setActionError(error instanceof ApiRequestError ? error.message : UNREACHABLE),
+        onError: (error) => setActionError(errorText(error)),
       },
     );
   }
@@ -200,7 +237,7 @@ export function AgentView() {
         <button
           type="button"
           aria-label="Envoyer"
-          disabled={!canSend || chat.isPending}
+          disabled={!canSend || busy}
           onClick={send}
           className="grid size-8 place-items-center rounded-full bg-accent text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:bg-line disabled:text-ink-soft"
         >
@@ -270,7 +307,17 @@ export function AgentView() {
                 </div>
               ),
             )}
-            {chat.isPending && <p className="text-sm text-ink-soft">Réflexion…</p>}
+            {streaming && (
+              <div className="flex max-w-[85%] flex-col gap-3">
+                {streaming.text ? (
+                  <div className="text-sm text-ink-soft">
+                    <Markdown>{streaming.text}</Markdown>
+                  </div>
+                ) : (
+                  <p className="text-sm text-ink-soft">{streaming.status}</p>
+                )}
+              </div>
+            )}
             {actionError && (
               <p role="alert" className="text-sm text-red-700">
                 {actionError}
