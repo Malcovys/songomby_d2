@@ -12,3 +12,5 @@ export * from './modules/employees/employees.module.ts';
 export * from './modules/employees/employees.service.ts';
 export * from './modules/holidays/holidays.module.ts';
 export * from './modules/holidays/holidays.service.ts';
+export * from './modules/leaves/leaves.module.ts';
+export * from './modules/leaves/leaves.service.ts';
