@@ -5,9 +5,11 @@ import { Sidebar } from './sidebar';
 import { TabBar } from './tab-bar';
 import type { TabId } from './pages';
 import { useWorkspace } from './workspace-store';
+import { HolidaysPage } from '../holidays/holidays-page';
 
 function PageView({ id }: { id: TabId }) {
   if (id === 'employees') return <EmployeesPage />;
+  if (id === 'holidays') return <HolidaysPage />;
   return <PagePlaceholder id={id} />;
 }
 
