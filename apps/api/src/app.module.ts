@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, HealthModule, LoggingModule, PrismaModule } from '@nexora/core';
+import { AbsencesHttpModule } from './absences/absences-http.module.ts';
 import { EmployeesHttpModule } from './employees/employees-http.module.ts';
 import { HolidaysHttpModule } from './holidays/holidays-http.module.ts';
 import { LeavesHttpModule } from './leaves/leaves-http.module.ts';
@@ -13,6 +14,7 @@ import { LeavesHttpModule } from './leaves/leaves-http.module.ts';
     EmployeesHttpModule,
     HolidaysHttpModule,
     LeavesHttpModule,
+    AbsencesHttpModule,
   ],
 })
 export class AppModule {}

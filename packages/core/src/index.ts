@@ -14,3 +14,5 @@ export * from './modules/holidays/holidays.module.ts';
 export * from './modules/holidays/holidays.service.ts';
 export * from './modules/leaves/leaves.module.ts';
 export * from './modules/leaves/leaves.service.ts';
+export * from './modules/absences/absences.module.ts';
+export * from './modules/absences/absences.service.ts';

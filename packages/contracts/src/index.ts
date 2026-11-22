@@ -3,3 +3,4 @@ export * from './health.ts';
 export * from './employee.ts';
 export * from './holiday.ts';
 export * from './leave.ts';
+export * from './absence.ts';
