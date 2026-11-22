@@ -17,6 +17,7 @@ export interface ChatHooks {
 const TOOL_STATUS: Record<string, string> = {
   find_employees: 'Recherche des employés…',
   list_leaves: 'Consultation des congés…',
+  list_tickets: 'Consultation des tickets…',
   list_holidays: 'Consultation des jours fériés…',
   preview_payslip: 'Calcul de la fiche de paie…',
   add_holidays: 'Préparation des jours fériés…',

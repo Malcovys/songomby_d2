@@ -164,6 +164,31 @@ export class AgentTools {
       }),
 
       defineTool({
+        name: 'list_tickets',
+        description:
+          'Liste les tickets, éventuellement filtrés par statut. Renvoie au maximum 20 tickets.',
+        kind: 'read',
+        schema: z.object({
+          status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CLOSED']).optional(),
+        }),
+        run: async (p) => {
+          const result = await tickets.list({ page: 1, limit: 20, ...p });
+          return {
+            total: result.total,
+            tickets: result.items.map((ticket) => ({
+              title: ticket.title,
+              description: ticket.description,
+              status: ticket.status,
+              priority: ticket.priority,
+              employee: ticket.employee
+                ? `${ticket.employee.firstName} ${ticket.employee.lastName}`
+                : null,
+            })),
+          };
+        },
+      }),
+
+      defineTool({
         name: 'list_holidays',
         description: 'Liste les jours fériés enregistrés, éventuellement pour une année.',
         kind: 'read',
