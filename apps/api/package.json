@@ -17,6 +17,7 @@
     "@nexora/contracts": "workspace:*",
     "@nexora/core": "workspace:*",
     "nestjs-pino": "catalog:",
+    "prisma": "catalog:",
     "reflect-metadata": "catalog:",
     "rxjs": "catalog:",
     "zod": "catalog:"
