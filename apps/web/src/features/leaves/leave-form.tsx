@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import type { FormEvent } from 'react';
 import type { Leave } from '@nexora/contracts';
 import { useEmployees } from '@/features/employees/use-employees';
@@ -47,6 +48,16 @@ export function LeaveForm({ onDone, onCancel }: LeaveFormProps) {
       onSubmit={submit}
       className="grid gap-3 border-b border-line bg-paper/50 px-6 py-4 sm:grid-cols-2 lg:grid-cols-4"
     >
+      <button
+        type="button"
+        onClick={onCancel}
+        disabled={create.isPending}
+        className="inline-flex items-center gap-1.5 justify-self-start rounded text-sm text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-50 sm:col-span-2 lg:col-span-4"
+      >
+        <ArrowLeft className="size-4" aria-hidden />
+        Retour aux congés
+      </button>
+
       <label className="flex flex-col gap-1 text-sm sm:col-span-2">
         <span className="text-ink-soft">Employé</span>
         <select
