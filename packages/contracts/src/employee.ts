@@ -5,9 +5,9 @@ import { paginatedSchema, paginationQuerySchema } from './api.ts';
 export const employeeStatusSchema = z.enum(['ACTIVE', 'ON_LEAVE', 'TERMINATED']);
 export const contractTypeSchema = z.enum(['CDI', 'CDD', 'INTERN', 'FREELANCE']);
 
-// ---------- Création ----------
+// ---------- Création / modification ----------
 
-export const createEmployeeSchema = z.object({
+const employeeFieldsSchema = z.object({
   matricule: z.string().trim().min(1).max(30),
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().min(1).max(100),
@@ -15,19 +15,24 @@ export const createEmployeeSchema = z.object({
   phone: z.string().trim().max(30).optional(),
   position: z.string().trim().min(1).max(100),
   department: z.string().trim().max(100).optional(),
-  contractType: contractTypeSchema.default('CDI'),
-  status: employeeStatusSchema.default('ACTIVE'),
+  contractType: contractTypeSchema,
+  status: employeeStatusSchema,
   hireDate: z.iso.date(), // "2026-01-15"
   endDate: z.iso.date().optional(),
   baseSalary: z.coerce.number().positive(),
+  leaveBalanceDays: z.coerce.number().min(0).max(999),
+});
+
+export const createEmployeeSchema = employeeFieldsSchema.extend({
+  contractType: contractTypeSchema.default('CDI'),
+  status: employeeStatusSchema.default('ACTIVE'),
   leaveBalanceDays: z.coerce.number().min(0).max(999).default(30),
 });
 
 export type CreateEmployee = z.infer<typeof createEmployeeSchema>;
 
-// ---------- Modification (tous les champs deviennent optionnels) ----------
-
-export const updateEmployeeSchema = createEmployeeSchema.partial();
+// Pas de valeurs par défaut ici : un champ absent n'est pas modifié
+export const updateEmployeeSchema = employeeFieldsSchema.partial();
 
 export type UpdateEmployee = z.infer<typeof updateEmployeeSchema>;
 
