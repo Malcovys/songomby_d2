@@ -1,8 +1,15 @@
 import { AgentView } from '@/features/agent/agent-view';
+import { EmployeesPage } from '@/features/employees/employees-page';
 import { PagePlaceholder } from './page-placeholder';
 import { Sidebar } from './sidebar';
 import { TabBar } from './tab-bar';
+import type { TabId } from './pages';
 import { useWorkspace } from './workspace-store';
+
+function PageView({ id }: { id: TabId }) {
+  if (id === 'employees') return <EmployeesPage />;
+  return <PagePlaceholder id={id} />;
+}
 
 export function Workspace() {
   const { active } = useWorkspace();
@@ -12,11 +19,11 @@ export function Workspace() {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TabBar />
-        <main className="min-h-0 flex-1 overflow-y-auto bg-panel">
+        <main className="min-h-0 flex-1 overflow-hidden bg-panel">
           <div hidden={active !== 'agent'} className="h-full">
             <AgentView />
           </div>
-          {active !== 'agent' && <PagePlaceholder id={active} />}
+          {active !== 'agent' && <PageView id={active} />}
         </main>
       </div>
     </div>
