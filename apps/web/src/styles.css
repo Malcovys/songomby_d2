@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/hanken-grotesk';
+
+@theme {
+  --font-sans: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-paper: #eef1ee;
+  --color-panel: #fbfcfb;
+  --color-ink: #17211d;
+  --color-ink-soft: #5a6761;
+  --color-line: #d8dfda;
+  --color-accent: #0e6b52;
+  --color-accent-soft: #d9ede5;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}

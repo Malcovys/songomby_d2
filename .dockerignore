@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+**/.turbo
+.git
+.github
+.env*
+coverage
+test-results
+playwright-report
+**/*.log
+.DS_Store
+.vscode
+docs
