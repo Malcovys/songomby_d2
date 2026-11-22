@@ -10,3 +10,5 @@ export * from './platform/redis/redis.module.ts';
 export * from './platform/validation/zod-validation.pipe.ts';
 export * from './modules/employees/employees.module.ts';
 export * from './modules/employees/employees.service.ts';
+export * from './modules/holidays/holidays.module.ts';
+export * from './modules/holidays/holidays.service.ts';
