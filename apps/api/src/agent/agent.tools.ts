@@ -82,6 +82,22 @@ const payslipParams = z.object({
   bonuses: z.number().min(0).optional().describe('Primes du mois, 0 par défaut'),
 });
 
+const createEmployeeParams = z.object({
+  matricule: z.string().trim().min(1).max(30).describe('Matricule unique du nouvel employé'),
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  email: z.email().optional(),
+  phone: z.string().trim().max(30).optional(),
+  position: z.string().trim().min(1).max(100).describe('Intitulé du poste'),
+  department: z.string().trim().max(100).optional(),
+  contractType: z.enum(['CDI', 'CDD', 'INTERN', 'FREELANCE']).default('CDI'),
+  status: z.enum(['ACTIVE', 'ON_LEAVE', 'TERMINATED']).default('ACTIVE'),
+  hireDate: date.describe("Date d'embauche"),
+  endDate: date.optional(),
+  baseSalary: z.number().positive().describe('Salaire de base'),
+  leaveBalanceDays: z.number().min(0).max(999).default(30),
+});
+
 const money = (value: string, currency: string): string =>
   `${Number(value).toLocaleString('fr-FR')} ${currency}`;
 
@@ -256,6 +272,19 @@ export class AgentTools {
           const who = p.employeeId ? ` concernant ${await fullName(p.employeeId)}` : '';
           return `Créer le ticket « ${p.title} »${who} (priorité ${p.priority ?? 'MEDIUM'})`;
         },
+      }),
+
+      defineTool({
+        name: 'create_employee',
+        description:
+          "Prépare la création d'un employé. Demande les champs obligatoires manquants et n'invente aucune donnée.",
+        kind: 'write',
+        schema: createEmployeeParams,
+        run: (p) => employees.create(p),
+        summarize: async (p) =>
+          `Créer la fiche de ${p.firstName} ${p.lastName} (matricule ${p.matricule}), ` +
+          `poste ${p.position}, département ${p.department ?? 'non précisé'}, contrat ${p.contractType}, ` +
+          `embauche le ${p.hireDate}, salaire de base ${p.baseSalary}`,
       }),
 
       defineTool({

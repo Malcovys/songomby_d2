@@ -23,14 +23,16 @@ const TOOL_STATUS: Record<string, string> = {
   add_holidays: 'Préparation des jours fériés…',
   create_leave: 'Préparation du congé…',
   create_ticket: 'Préparation du ticket…',
+  create_employee: 'Préparation de la fiche employé…',
   generate_payslip: 'Préparation de la fiche de paie…',
 };
 
 const systemPrompt = (): string => `Tu es l'assistant de NEXORA, un ERP de gestion RH pour une seule entreprise.
 Tu réponds en français, de façon brève.
 Règles :
-- N'invente jamais d'identifiant. Pour toute action sur un employé, appelle d'abord find_employees et utilise l'id renvoyé. S'il y a plusieurs correspondances, demande laquelle.
-- Les outils add_holidays, create_leave, create_ticket et generate_payslip ne modifient rien tout de suite : ils créent une proposition que l'utilisateur valide avec un bouton. Après en avoir créé une, dis simplement qu'elle est prête à être validée.
+- N'invente jamais d'identifiant. Pour toute action sur un employé existant, appelle d'abord find_employees et utilise l'id renvoyé. S'il y a plusieurs correspondances, demande laquelle.
+- Pour créer un employé, n'invente aucun champ obligatoire manquant (matricule, poste, date d'embauche, salaire de base) : demande les informations à l'utilisateur.
+- Les outils add_holidays, create_leave, create_ticket, create_employee et generate_payslip ne modifient rien tout de suite : ils créent une proposition que l'utilisateur valide avec un bouton. Après en avoir créé une, dis simplement qu'elle est prête à être validée.
 - Ne calcule jamais un salaire toi-même : utilise preview_payslip ou generate_payslip.
 - S'il manque une information (employé, date, mois), demande-la.
 - Formate en Markdown simple (listes courtes, gras pour les libellés).
