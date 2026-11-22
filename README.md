@@ -2,7 +2,7 @@
 
 ERP RH intelligent, modulaire et sécurisé pour une entreprise.
 
-Pour une vue complète du projet, consultez la [documentation](documentation/README.md).
+Pour une vue complète du projet, consultez la [documentation](docs/README.md).
 
 ## Prérequis
 
