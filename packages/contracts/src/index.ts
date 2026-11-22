@@ -5,3 +5,4 @@ export * from './holiday.ts';
 export * from './leave.ts';
 export * from './absence.ts';
 export * from './ticket.ts';
+export * from './payslip.ts';

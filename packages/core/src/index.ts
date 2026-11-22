@@ -18,3 +18,5 @@ export * from './modules/absences/absences.module.ts';
 export * from './modules/absences/absences.service.ts';
 export * from './modules/tickets/tickets.module.ts';
 export * from './modules/tickets/tickets.service.ts';
+export * from './modules/payslips/payslips.module.ts';
+export * from './modules/payslips/payslips.service.ts';
