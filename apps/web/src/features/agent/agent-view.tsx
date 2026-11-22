@@ -5,6 +5,7 @@ import type { Proposal } from '@nexora/contracts';
 import { ApiRequestError } from '@/lib/api';
 import { ProposalCard } from './proposal-card';
 import { useChat, useProposalAction } from './use-agent';
+import { Markdown } from './markdown';
 
 interface Message {
   id: string;
@@ -255,13 +256,9 @@ export function AgentView() {
                 </div>
               ) : (
                 <div key={message.id} className="flex max-w-[85%] flex-col gap-3">
-                  <p
-                    className={`whitespace-pre-wrap text-sm ${
-                      message.error ? 'text-red-700' : 'text-ink-soft'
-                    }`}
-                  >
-                    {message.text}
-                  </p>
+                  <div className={`text-sm ${message.error ? 'text-red-700' : 'text-ink-soft'}`}>
+                    <Markdown>{message.text}</Markdown>
+                  </div>
                   {message.proposals.map((proposal) => (
                     <ProposalCard
                       key={proposal.id}

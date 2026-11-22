@@ -43,17 +43,22 @@ export class EmployeesService {
   async list(query: ListEmployeesQuery): Promise<PaginatedEmployees> {
     const { page, limit, sort, search, department, status, contractType } = query;
 
+    // Chaque mot doit correspondre à au moins un champ
+    const terms = search?.trim().split(/\s+/).filter(Boolean) ?? [];
+
     const where: Prisma.EmployeeWhereInput = {
       ...(department && { department }),
       ...(status && { status }),
       ...(contractType && { contractType }),
-      ...(search && {
-        OR: [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
-          { matricule: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ],
+      ...(terms.length > 0 && {
+        AND: terms.map((term) => ({
+          OR: [
+            { firstName: { contains: term, mode: 'insensitive' } },
+            { lastName: { contains: term, mode: 'insensitive' } },
+            { matricule: { contains: term, mode: 'insensitive' } },
+            { email: { contains: term, mode: 'insensitive' } },
+          ],
+        })),
       }),
     };
 
