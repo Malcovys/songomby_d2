@@ -6,3 +6,4 @@ export * from './leave.ts';
 export * from './absence.ts';
 export * from './ticket.ts';
 export * from './payslip.ts';
+export * from './agent.ts';

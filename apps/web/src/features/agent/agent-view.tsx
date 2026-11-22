@@ -1,12 +1,18 @@
 import { ArrowUp, FileText, Paperclip, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import type { Proposal } from '@nexora/contracts';
+import { ApiRequestError } from '@/lib/api';
+import { ProposalCard } from './proposal-card';
+import { useChat, useProposalAction } from './use-agent';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   text: string;
   files: string[];
+  proposals: Proposal[];
+  error?: boolean;
 }
 
 const SUGGESTIONS = [
@@ -16,36 +22,106 @@ const SUGGESTIONS = [
   'Importer les employés depuis un fichier',
 ];
 
-const NOT_CONNECTED = "Je ne suis pas encore connecté au serveur : cette demande n'a rien modifié.";
+const UNREACHABLE = 'Impossible de joindre le serveur. Vérifiez que l’API est lancée.';
+
+const assistantMessage = (text: string, extra: Partial<Message> = {}): Message => ({
+  id: crypto.randomUUID(),
+  role: 'assistant',
+  text,
+  files: [],
+  proposals: [],
+  ...extra,
+});
 
 export function AgentView() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [files, setFiles] = useState<File[]>([]);
+  const [actionError, setActionError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
+  const chat = useChat();
+  const proposalAction = useProposalAction();
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: 'end' });
-  }, [messages]);
+  }, [messages, chat.isPending]);
 
   const canSend = draft.trim().length > 0 || files.length > 0;
   const empty = messages.length === 0;
 
   function send(): void {
-    if (!canSend) return;
-    setMessages((previous) => [
-      ...previous,
-      {
-        id: crypto.randomUUID(),
-        role: 'user',
-        text: draft.trim(),
-        files: files.map((file) => file.name),
-      },
-      { id: crypto.randomUUID(), role: 'assistant', text: NOT_CONNECTED, files: [] },
-    ]);
+    if (!canSend || chat.isPending) return;
+
+    const text = draft.trim();
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      text,
+      files: files.map((file) => file.name),
+      proposals: [],
+    };
     setDraft('');
     setFiles([]);
+    setActionError(null);
+
+    // Fichier seul, sans texte : la lecture de fichiers n'est pas encore active
+    if (text === '') {
+      setMessages((previous) => [
+        ...previous,
+        userMessage,
+        assistantMessage(
+          'La lecture des fichiers n’est pas encore active. Décrivez votre demande par écrit.',
+          { error: true },
+        ),
+      ]);
+      return;
+    }
+
+    const history = [...messages, userMessage];
+    setMessages(history);
+
+    chat.mutate(
+      {
+        messages: history
+          .filter((message) => !message.error && message.text !== '')
+          .map((message) => ({ role: message.role, content: message.text })),
+      },
+      {
+        onSuccess: (data) =>
+          setMessages((previous) => [
+            ...previous,
+            assistantMessage(data.reply, { proposals: data.proposals }),
+          ]),
+        onError: (error) =>
+          setMessages((previous) => [
+            ...previous,
+            assistantMessage(error instanceof ApiRequestError ? error.message : UNREACHABLE, {
+              error: true,
+            }),
+          ]),
+      },
+    );
+  }
+
+  function decide(id: string, action: 'apply' | 'cancel'): void {
+    setActionError(null);
+    proposalAction.mutate(
+      { id, action },
+      {
+        onSuccess: ({ proposal }) =>
+          setMessages((previous) =>
+            previous.map((message) => ({
+              ...message,
+              proposals: message.proposals.map((item) =>
+                item.id === proposal.id ? proposal : item,
+              ),
+            })),
+          ),
+        onError: (error) =>
+          setActionError(error instanceof ApiRequestError ? error.message : UNREACHABLE),
+      },
+    );
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>): void {
@@ -123,7 +199,7 @@ export function AgentView() {
         <button
           type="button"
           aria-label="Envoyer"
-          disabled={!canSend}
+          disabled={!canSend || chat.isPending}
           onClick={send}
           className="grid size-8 place-items-center rounded-full bg-accent text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:bg-line disabled:text-ink-soft"
         >
@@ -178,10 +254,30 @@ export function AgentView() {
                   )}
                 </div>
               ) : (
-                <p key={message.id} className="max-w-[85%] text-sm text-ink-soft">
-                  {message.text}
-                </p>
+                <div key={message.id} className="flex max-w-[85%] flex-col gap-3">
+                  <p
+                    className={`whitespace-pre-wrap text-sm ${
+                      message.error ? 'text-red-700' : 'text-ink-soft'
+                    }`}
+                  >
+                    {message.text}
+                  </p>
+                  {message.proposals.map((proposal) => (
+                    <ProposalCard
+                      key={proposal.id}
+                      proposal={proposal}
+                      busy={proposalAction.isPending}
+                      onAction={(action) => decide(proposal.id, action)}
+                    />
+                  ))}
+                </div>
               ),
+            )}
+            {chat.isPending && <p className="text-sm text-ink-soft">Réflexion…</p>}
+            {actionError && (
+              <p role="alert" className="text-sm text-red-700">
+                {actionError}
+              </p>
             )}
             <div ref={bottom} />
           </div>

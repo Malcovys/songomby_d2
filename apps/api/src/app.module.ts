@@ -6,6 +6,7 @@ import { HolidaysHttpModule } from './holidays/holidays-http.module.ts';
 import { LeavesHttpModule } from './leaves/leaves-http.module.ts';
 import { PayslipsHttpModule } from './payslips/payslips-http.module.ts';
 import { TicketsHttpModule } from './tickets/tickets-http.module.ts';
+import { AgentHttpModule } from './agent/agent-http.module.ts';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { TicketsHttpModule } from './tickets/tickets-http.module.ts';
     AbsencesHttpModule,
     TicketsHttpModule,
     PayslipsHttpModule,
+    AgentHttpModule,
   ],
 })
 export class AppModule {}

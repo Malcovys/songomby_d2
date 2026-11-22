@@ -9,6 +9,9 @@ const envSchema = z.object({
   S3_ENDPOINT: z.url().optional(),
   S3_ACCESS_KEY: z.string().optional(),
   S3_SECRET_KEY: z.string().optional(),
+  LLM_API_KEY: z.string().optional(),
+  LLM_BASE_URL: z.url().default('https://generativelanguage.googleapis.com/v1beta/openai/'),
+  LLM_MODEL: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

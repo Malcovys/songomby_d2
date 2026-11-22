@@ -18,7 +18,8 @@
     "@nexora/core": "workspace:*",
     "nestjs-pino": "catalog:",
     "reflect-metadata": "catalog:",
-    "rxjs": "catalog:"
+    "rxjs": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@nestjs/cli": "catalog:",
