@@ -16,3 +16,5 @@ export * from './modules/leaves/leaves.module.ts';
 export * from './modules/leaves/leaves.service.ts';
 export * from './modules/absences/absences.module.ts';
 export * from './modules/absences/absences.service.ts';
+export * from './modules/tickets/tickets.module.ts';
+export * from './modules/tickets/tickets.service.ts';
