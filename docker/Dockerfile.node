@@ -5,7 +5,7 @@ RUN npm install --global pnpm@12.21.0
 WORKDIR /repo
 
 FROM base AS build
-ARG APP
+ARG APP=api
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm turbo run build --filter=@nexora/${APP}...
@@ -15,6 +15,8 @@ FROM node:26-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build --chown=node:node /out ./
+COPY --from=build --chown=node:node /repo/prisma ./prisma
+COPY --from=build --chown=node:node /repo/prisma.config.ts ./prisma.config.ts
 USER node
 EXPOSE 3000
 CMD ["node", "dist/main.js"]
