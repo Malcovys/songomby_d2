@@ -7,11 +7,17 @@ import type { TabId } from './pages';
 import { useWorkspace } from './workspace-store';
 import { HolidaysPage } from '../holidays/holidays-page';
 import { LeavesPage } from '../leaves/leaves-page';
+import { AbsencesPage } from '../absences/absences-page';
+import { PayslipsPage } from '../payslips/payslips-page';
+import { TicketsPage } from '../tickets/tickets-page';
 
 function PageView({ id }: { id: TabId }) {
   if (id === 'employees') return <EmployeesPage />;
   if (id === 'leaves') return <LeavesPage />;
   if (id === 'holidays') return <HolidaysPage />;
+  if (id === 'absences') return <AbsencesPage />;
+  if (id === 'tickets') return <TicketsPage />;
+  if (id === 'payslips') return <PayslipsPage />;
   return <PagePlaceholder id={id} />;
 }
 
