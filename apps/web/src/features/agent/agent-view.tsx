@@ -1,4 +1,4 @@
-import { ArrowUp, FileText, Paperclip, X } from 'lucide-react';
+import { ArrowUp, FileText, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { Proposal } from '@nexora/contracts';
@@ -49,7 +49,6 @@ export function AgentView() {
   const [files, setFiles] = useState<File[]>([]);
   const [streaming, setStreaming] = useState<Streaming | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const abort = useRef<AbortController | null>(null);
   const proposalAction = useProposalAction();
@@ -172,7 +171,6 @@ export function AgentView() {
   function addFiles(list: FileList | null): void {
     if (!list || list.length === 0) return;
     setFiles((previous) => [...previous, ...Array.from(list)]);
-    if (fileInput.current) fileInput.current.value = '';
   }
 
   const composer = (
@@ -217,23 +215,7 @@ export function AgentView() {
         className="field-sizing-content max-h-48 min-h-14 w-full resize-none bg-transparent text-sm outline-none placeholder:text-ink-soft"
       />
 
-      <div className="mt-2 flex items-center justify-between">
-        <button
-          type="button"
-          aria-label="Joindre un fichier"
-          onClick={() => fileInput.current?.click()}
-          className="rounded p-1.5 text-ink-soft hover:bg-paper hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
-        >
-          <Paperclip className="size-4" aria-hidden />
-        </button>
-        <input
-          ref={fileInput}
-          type="file"
-          multiple
-          accept=".csv,.xlsx,.xls,.pdf"
-          className="hidden"
-          onChange={(event) => addFiles(event.target.files)}
-        />
+      <div className="mt-2 flex items-center justify-end">
         <button
           type="button"
           aria-label="Envoyer"
